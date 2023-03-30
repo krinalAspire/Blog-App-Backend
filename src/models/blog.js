@@ -2,8 +2,7 @@ const mongoose=require("mongoose");
 
 const blogSchema=new mongoose.Schema({
     blogid:{
-        type:Number,
-        required:true
+        type:Number
     },
     title:{
         type:String,

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express=require("express");
 const app=express();
 const cors=require("cors");
@@ -6,6 +7,7 @@ const Register=require("./models/users");
 const Blog=require("./models/blog");
 const bodyParser = require('body-parser');
 const bcrypt=require("bcryptjs");
+const auth=require("./middleware/auth");
 const cookieParser=require("cookie-parser");
 
 const port=process.env.PORT || 5000;
@@ -19,37 +21,6 @@ app.use(express.urlencoded({extended:false}));
 app.get("/",(req,res)=>{
     res.send("connection established");
 })
-
-// app.post("/register",async(req,res)=>{
-//     try{
-//      //    console.log(req.body.fullname);
-//      //    res.send(req.body.fullname);
-//         const password=req.body.password;
-//         const cpassword=req.body.cpassword;
-//         if(password===cpassword){
-//              const registeruser=new Register({
-//                  userid:req.body.fullname,
-//                  email:req.body.email,
-//                  phone:req.body.phone,
-//                  password:password,
-//                  cpassword:cpassword
-//              })
-             
-             
-//             //  res.cookie("jwt",token,{
-//             //      expires:new Date(Date.now()+3000),
-//             //      httpOnly:true
-//             //  });
- 
-//              const registered=await registeruser.save();
-//              res.status(201).render("/login");
-//         }else{
-//          res.send("password are not matching");
-//         }
-//     }catch(e){
-//        res.status(400).send(e);
-//     }
-//  });
 
 app.post("/users",async (req,res)=>{
     try{
@@ -69,37 +40,6 @@ app.post("/users",async (req,res)=>{
     }
     
 })
-
-// app.post("/login",async(req,res)=>{
-//     try{
-//       const id=req.body.userid;
-//       const password=req.body.password;
-
-//       // console.log("password",req.body);
-
-//       const userid=await Register.findOne({id:userid});
-
-//       const isMatch=await bcrypt.compare(password, userid.password);
-//       const token=await useremail.generateAuthToken();
-//       console.log("the token part :" + token);
-
-//       res.cookie("jwt",token,{
-//           expires:new Date(Date.now()+60000),
-//           httpOnly:true,
-//           // secure:true
-//       });
-
-//       // console.log(isMatch);
-//       // console.log("pass1",useremail.password);
-//       if(isMatch){
-//           res.status(201).render("/home");
-//       }else{
-//           res.status(400).send("Invalid Login");
-//       }
-//     }catch(e){
-//       res.status(400).send("Invalid User");
-//     }
-// });
 
 app.get("/users",async (req,res)=>{
     try{
@@ -131,18 +71,10 @@ app.post("/blogs",async (req,res)=>{
     
 })
 
-app.get("/blogs/:key",async(req,res)=>{
+app.get("/blogs/:id",async(req,res)=>{
     try{
-        const blogid=req.params.key;
-        console.log(blogid);
-        const blogData=await Blog.find(
-            // {
-            //     "$or":[
-            //         {"blogid":{$regex:req.params.key}}
-            //     ]
-            // }
-        );
-        console.log(blogData);
+        const _id=req.params.id;
+        const blogData=await Blog.findById(_id );
         res.status(201).send(blogData);
     }catch(e){
         res.status(400).send(e);
@@ -184,7 +116,31 @@ app.delete("/blogs/:id",async(req,res)=>{
     }
 })
 
+app.post("/login",async(req,res)=>{
+    try{
+        const id=res.body.userid;
+        const password=res.body.password;
 
+        const userId=await Register.findOne({userid:id});
+        const isMatch=await bcrypt.compare(password, userId.password);
+        const token=await userId.generateAuthToken();
+        console.log("the token part :" + token);
+
+        res.cookie("jwt",token,{
+            expires:new Date(Date.now()+60000),
+            httpOnly:true
+        });
+
+        if(isMatch){
+            res.status(201).send("succesfully login");
+        }else{
+            res.status(400).send("Invalid Login");
+        }
+
+    }catch(e){
+        res.status(400).send(e);
+    }
+})
 
 app.listen(port,(req,res)=>{
     console.log(`Backend running at ${port}`);
