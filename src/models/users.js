@@ -7,9 +7,6 @@ const userSchema=new mongoose.Schema({
         type:String,
         required:true
     },
-    role:{
-        type:String
-    },
     name:{
         type:String,
         required:true
@@ -46,14 +43,17 @@ const userSchema=new mongoose.Schema({
             type:String,
             required:true
         }
-    }]
+    }],
+    role:{
+        type:String
+    },
 });
 //generating tokens
 userSchema.methods.generateAuthToken= async function(){
     try{
         const token=jwt.sign({_id:this._id.toString()}, process.env.SECRET_KEY);
         this.tokens=this.tokens.concat({token:token})
-        // console.log(token);
+        console.log(token);
         await this.save();
         return token;
     }catch(e){
@@ -64,9 +64,7 @@ userSchema.methods.generateAuthToken= async function(){
 
 //converting password into hash
 userSchema.pre("save",async function(next){
-    //  const passwordHash=await bcrypt.hash(password,10);
     if(this.isModified("password")){
-        // console.log(`the current password is ${this.password}`);
         this.password=await bcrypt.hash(this.password,10);
     }
      next();

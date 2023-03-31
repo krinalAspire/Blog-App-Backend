@@ -14,6 +14,7 @@ const port=process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser());
 app.use(bodyParser.json());
 // const jsonParser = bodyParser.json()
 app.use(express.urlencoded({extended:false}));
@@ -26,13 +27,13 @@ app.post("/users",async (req,res)=>{
     try{
         // console.log(req.body);
         const user=new Register(req.body);
-        // const token=await user.generateAuthToken();
+        const token=await user.generateAuthToken();
         // console.log(token);
         
-        // res.cookie("jwt",token,{
-        //     expires:new Date(Date.now()+3000),
-        //     httpOnly:true
-        // });
+        res.cookie("jwt",token,{
+            expires:new Date(Date.now()+3000),
+            httpOnly:true
+        });
         const createUser= await user.save();
         res.status(201).send(createUser);
     }catch(e){
@@ -48,6 +49,10 @@ app.get("/users",async (req,res)=>{
     }catch(e){
         res.status(400).send(e);
     }
+})
+
+app.get("/home/*",auth,(req,res)=>{
+    req.status(201).send("Succesfull");
 })
 
 app.get("/blogs", async(req,res)=>{
@@ -116,30 +121,62 @@ app.delete("/blogs/:id",async(req,res)=>{
     }
 })
 
-app.post("/login",async(req,res)=>{
-    try{
-        const id=res.body.userid;
-        const password=res.body.password;
+// app.post("/login",async(req,res)=>{
+//     try{
+//         const id=req.body.userid;
+//         const password=req.body.password;
 
-        const userId=await Register.findOne({userid:id});
-        const isMatch=await bcrypt.compare(password, userId.password);
-        const token=await userId.generateAuthToken();
-        console.log("the token part :" + token);
+//         // console.log("password",req.body);
 
-        res.cookie("jwt",token,{
-            expires:new Date(Date.now()+60000),
-            httpOnly:true
-        });
+//         const userId=await Register.findOne({userid:id});
+//         const isMatch=await bcrypt.compare(password, userId.password);
+      
+//         const token=await userId.generateAuthToken();
+//         console.log("the token part :" + token);
 
-        if(isMatch){
-            res.status(201).send("succesfully login");
-        }else{
-            res.status(400).send("Invalid Login");
-        }
+//         res.cookie("jwt",token,{
+//             expires:new Date(Date.now()+60000),
+//             httpOnly:true
+//         });
 
-    }catch(e){
-        res.status(400).send(e);
+//         // console.log("pass1",userId.password);
+
+//         if(isMatch){
+//             res.status(201).send("succesfully login");
+//             localStorage.setItem("token", token);
+//         }else{
+//             res.status(400).send("Invalid Login");
+//         }
+
+//     }catch(e){
+//         res.status(400).send(e);
+//     }
+// })
+
+app.post('/login', async(req,res)=>{
+    const {userid, password} = req.body
+
+try{
+    const userId = await Register.findOne({userid:userid})
+    const isMatch = await bcrypt.compare(password, userId.password)
+    const token = await userId.generateAuthToken()
+    
+    // console.log("dfdg",token);
+    
+    // res.cookie("jwt", token, {
+    //     httpOnly: true
+    //     //secure: true
+    // })
+
+    if(isMatch){
+        res.status(200).json({message: "Login successfully", token: token})
+        localStorage.setItem("token", token)
+    }else{
+        res.status(400).json({message:"Invalid Login Details"})
     }
+}catch(e){
+    res.status(400).json({message: "Invalid Login Details"})
+}
 })
 
 app.listen(port,(req,res)=>{

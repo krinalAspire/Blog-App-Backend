@@ -11,8 +11,10 @@ const auth=async(req,res, next)=>{
 
        req.token=token;
        req.user=user;
-        if(user.role !== "admin"){
-            return res.status(400).json({message:"Authorize first as admin"})
+        if(user.role === "admin"){
+            return res.status(201).send("succesfull login admin");
+        }else{
+            return res.status(201).send("succesfull login user");
         }
        next();
     }catch(e){
