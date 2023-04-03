@@ -162,10 +162,10 @@ try{
     
     // console.log("dfdg",token);
     
-    res.cookie("jwt", token, {
-        httpOnly: true
-        //secure: true
-    })
+    // res.cookie("jwt", token, {
+    //     httpOnly: true
+    //     //secure: true
+    // })
 
     if(isMatch){
         res.status(201).send({token:token});
