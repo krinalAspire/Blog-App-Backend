@@ -31,7 +31,7 @@ app.post("/users",async (req,res)=>{
         // console.log(token);
         
         res.cookie("jwt",token,{
-            expires:new Date(Date.now()+3000),
+            // expires:new Date(Date.now()+3000),
             httpOnly:true
         });
         const createUser= await user.save();
@@ -52,7 +52,7 @@ app.get("/users",async (req,res)=>{
 })
 
 app.get("/home/*",auth,(req,res)=>{
-    req.status(201).send("Succesfull");
+    res.send("Succesfull");
 })
 
 app.get("/blogs", async(req,res)=>{
@@ -154,8 +154,7 @@ app.delete("/blogs/:id",async(req,res)=>{
 // })
 
 app.post('/login', async(req,res)=>{
-    const {userid, password} = req.body
-
+    const {userid, password} = req.body;
 try{
     const userId = await Register.findOne({userid:userid})
     const isMatch = await bcrypt.compare(password, userId.password)
@@ -163,19 +162,21 @@ try{
     
     // console.log("dfdg",token);
     
-    // res.cookie("jwt", token, {
-    //     httpOnly: true
-    //     //secure: true
-    // })
+    res.cookie("jwt", token, {
+        httpOnly: true
+        //secure: true
+    })
 
     if(isMatch){
-        res.status(200).json({message: "Login successfully", token: token})
+        res.status(201).send({token:token});
         localStorage.setItem("token", token)
-    }else{
-        res.status(400).json({message:"Invalid Login Details"})
     }
-}catch(e){
-    res.status(400).json({message: "Invalid Login Details"})
+    // else{
+    //     res.status(400).send("Error while login")
+    // }
+}
+catch(e){
+    // res.send(e)
 }
 })
 
