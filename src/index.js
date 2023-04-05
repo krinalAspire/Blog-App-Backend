@@ -27,10 +27,10 @@ app.post("/users",async (req,res)=>{
         const user=new Register(req.body);
         const token=await user.generateAuthToken();
         
-        res.cookie("jwt",token,{
-            // expires:new Date(Date.now()+3000),
-            httpOnly:true
-        });
+        // res.cookie("jwt",token,{
+        //     // expires:new Date(Date.now()+3000),
+        //     httpOnly:true
+        // });
         const createUser= await user.save();
         res.status(201).send(createUser);
     }catch(e){
@@ -48,9 +48,9 @@ app.get("/users",async (req,res)=>{
     }
 })
 
-// app.get("/home/*",auth,(req,res)=>{
-//     res.send("Succesfull");
-// })
+app.get("/home",auth,(req,res)=>{
+    res.send("succesfull");
+})
 
 app.get("/blogs", async(req,res)=>{
     try{
@@ -99,6 +99,30 @@ app.patch("/blogs/:id",async(req,res)=>{
             new:true
         });
         res.status(201).send(updateBlog);
+    }catch(e){
+        res.status(400).send(e);
+    }
+})
+
+app.patch("/users/:id",async(req,res)=>{
+    try{
+        const _id=req.params.id;
+        const updateUser=await Register.findByIdAndUpdate(_id, req.body,{
+            new:true
+        });
+        res.status(201).send(updateUser);
+    }catch(e){
+        res.status(400).send(e);
+    }
+})
+
+app.delete("/users/:id",async(req,res)=>{
+    try{
+        const deleteUser=await Register.findByIdAndDelete(req.params.id);
+        if(!req.params.id){
+            return res.status(400).send();
+        }
+        res.status(201).send(deleteUser);
     }catch(e){
         res.status(400).send(e);
     }
