@@ -149,14 +149,13 @@ try{
 
     if(isMatch){
         res.status(201).json({token:token , data:userId});
-        localStorage.setItem("token", token)
     }
-    // else{
-    //     res.status(400).send("Error while login")
-    // }
+    else{
+        res.status(400).send(error)
+    }
 } 
 catch(e){
-    // res.send(e)
+    res.send(e)
 }
 })
 
