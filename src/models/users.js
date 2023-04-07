@@ -3,6 +3,9 @@ const bcrypt=require("bcryptjs");
 const jwt=require("jsonwebtoken");
 
 const userSchema=new mongoose.Schema({
+    role:{
+        type:String
+    },
     userid:{
         type:String,
         required:true
@@ -41,9 +44,9 @@ const userSchema=new mongoose.Schema({
             required:true
         }
     }],
-    role:{
-        type:String
-    },
+   verifytoken:{
+       type:String
+   }
 });
 //generating tokens
 userSchema.methods.generateAuthToken= async function(){

@@ -9,6 +9,18 @@ const bodyParser = require('body-parser');
 const bcrypt=require("bcryptjs");
 const auth=require("./middleware/auth");
 const cookieParser=require("cookie-parser");
+const nodemailer=require("nodemailer");
+const jwt=require("jsonwebtoken");
+
+//email config
+const transporter=nodemailer.createTransport({
+    service:"gmail",
+    auth:{
+        user:process.env.EMAIL,
+        pass:process.env.PASSWORD
+    }
+})
+
 
 const port=process.env.PORT || 5000;
 
@@ -157,6 +169,54 @@ try{
 catch(e){
     res.send(e)
 }
+})
+
+
+//send email link for reset password
+app.post("/sendpasswordlink", async(req,res)=>{
+    // console.log(req.body);
+
+    const {email}=req.body;
+
+    if(!email){
+        res.status(401).json({status:401, message:"Enter your Email"})
+    }
+
+    try{
+       const userFind=await Register.findOne({email:email});
+    //    console.log("userfind", userFind)
+    
+    //token generate for reset password
+    // const token = await userFind.generateAuthToken()
+    const token=jwt.sign({_id:userFind._id},process.env.SECRET_KEY,{
+        expiresIn:"1d"
+    })
+    //    console.log("token",token)
+
+    const setuserToken=await Register.findByIdAndUpdate({_id:userFind._id},{verifytoken:token},{new:true})
+    // console.log("setusertoken",setuserToken);
+
+    if(setuserToken){
+        const mailOptions={
+            from:process.env.EMAIL,
+            to:email,
+            subject:"sending email for password reset",
+            text:`This Link Valid For 2 minutes http://localhost:3000//forgotpassword/${userFind.id}/${setuserToken.verifytoken}`
+        }
+
+        transporter.sendMail(mailOptions,(error,info)=>{
+            if(error){
+                console.log("error",error);
+                res.status(401).json({status:401,message:"email not send"})
+            }else {
+                console.log("Email sent",info.response);
+                res.status(201).json({status:201,message:"Email sent Succesfully"})
+            }
+        })
+    }
+    }catch(e){
+        res.status(401).json({status:401,message:"Invalid User"})
+    }
 })
 
 app.listen(port,(req,res)=>{
