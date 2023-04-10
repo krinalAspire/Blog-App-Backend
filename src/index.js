@@ -189,7 +189,7 @@ app.post("/sendpasswordlink", async(req,res)=>{
     //token generate for reset password
     // const token = await userFind.generateAuthToken()
     const token=jwt.sign({_id:userFind._id},process.env.SECRET_KEY,{
-        expiresIn:"1d"
+        expiresIn:"120s"
     })
     //    console.log("token",token)
 
@@ -201,7 +201,7 @@ app.post("/sendpasswordlink", async(req,res)=>{
             from:process.env.EMAIL,
             to:email,
             subject:"sending email for password reset",
-            text:`This Link Valid For 2 minutes http://localhost:3000//forgotpassword/${userFind.id}/${setuserToken.verifytoken}`
+            text:`This Link Valid For 2 minutes http://localhost:3000/forgotpassword/${userFind.id}/${setuserToken.verifytoken}`
         }
 
         transporter.sendMail(mailOptions,(error,info)=>{
@@ -210,12 +210,58 @@ app.post("/sendpasswordlink", async(req,res)=>{
                 res.status(401).json({status:401,message:"email not send"})
             }else {
                 console.log("Email sent",info.response);
-                res.status(201).json({status:201,message:"Email sent Succesfully"})
+                res.status(201).json({status:201,message:"Email sent Succesfully"} )
             }
         })
     }
     }catch(e){
         res.status(401).json({status:401,message:"Invalid User"})
+    }
+})
+
+//varify user for forgot password time
+app.get("/forgotpassword/:id/:token", async(req,res)=>{
+    const {id,token}=req.params;
+    // console.log(id,token);
+
+    try{
+        const validuser=await Register.findOne({_id:id,verifytoken:token});
+        // console.log(validuser);
+
+        const verifyToken=jwt.verify(token,process.env.SECRET_KEY);
+        // console.log(verifyToken)
+        if(validuser && verifyToken._id){
+            res.status(201).json({status:201,validuser})
+        }else {
+            res.status(401).json({status:401, message:"user not exist"})
+        }
+    }catch(e){
+        res.status(401).json({status:401,e})
+    }
+})
+
+//change Password
+app.post("/:id/:token", async(req,res)=>{
+    const {id,token}=req.params;
+
+    const {password}=req.body;
+
+    try{
+        const validuser=await Register.findOne({_id:id,verifytoken:token});
+
+        const verifyToken=jwt.verify(token,process.env.SECRET_KEY);
+        
+        if(validuser && verifyToken._id){
+            const newPassword=await bcrypt.hash(password,10)
+            const setnewPass=await Register.findByIdAndUpdate({_id:id},{password:newPassword})
+
+            setnewPass.save();
+            res.status(201).json({status:201,setnewPass})
+        }else {
+            res.status(401).json({status:401, message:"user not exist"})
+        }
+    }catch(e){
+        res.status(401).json({status:401,e})
     }
 })
 
