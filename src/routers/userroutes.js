@@ -185,4 +185,22 @@ router.post("/:id/:token", async(req,res)=>{
     }
 })
 
+//refresh-token
+router.post("/refresh-token", async(req,res)=>{
+    try{
+        const id=req.body._id;
+        console("userid",id)
+
+        const userData=await Register.findById({_id:id});
+
+        if(userData){
+             
+        }else{
+            res.status(400).send({success:false, message:"User Not Found"})
+        }
+    }catch(e){
+        res.status(400).send({success:false, message:error.message})
+    }
+})
+
 module.exports=router;
