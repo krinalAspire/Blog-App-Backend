@@ -4,6 +4,7 @@ const Register=require("../models/users");
 const bcrypt=require("bcryptjs");
 const jwt=require("jsonwebtoken");
 const nodemailer=require("nodemailer");
+const auth = require("../middleware/auth");
 
 //email config
 const transporter=nodemailer.createTransport({
@@ -80,9 +81,16 @@ try{
     const userId = await Register.findOne({userid:userid})
     const isMatch = await bcrypt.compare(password, userId.password)
     const token = await userId.generateAuthToken()
+    const refreshToken=await jwt.sign({_id:userId._id}, process.env.REFRESH_JWT_SECRET, {
+            expiresIn: "1d",
+        });
+
+    const User= await Register.findByIdAndUpdate(userId._id,{
+        refreshtoken:refreshToken,
+    })
 
     if(isMatch){
-        res.status(201).json({token:token , data:userId});
+        res.status(201).json({token:token , data:User, refreshtoken:refreshToken});
     }
     else{
         res.status(400).send(error)
@@ -187,19 +195,50 @@ router.post("/:id/:token", async(req,res)=>{
 
 //refresh-token
 router.post("/refresh-token", async(req,res)=>{
-    try{
-        const id=req.body._id;
-        console("userid",id)
+    // try{
+    //     const id=req.body._id;
+    //     console("userid",id)
 
-        const userData=await Register.findById({_id:id});
+    //     const userData=await Register.findById({_id:id});
 
-        if(userData){
+    //     if(userData){
              
-        }else{
-            res.status(400).send({success:false, message:"User Not Found"})
+    //     }else{
+    //         res.status(400).send({success:false, message:"User Not Found"})
+    //     }
+    // }catch(e){
+    //     res.status(400).send({success:false, message:error.message})
+    // }
+    try {
+        const refreshToken = req.body?.refreshtoken
+        console.log(refreshToken);
+        if (!refreshToken) {
+            return res.status(404).json({ msg: "Token not Found" })
         }
-    }catch(e){
-        res.status(400).send({success:false, message:error.message})
+        const decoded = jwt.verify(refreshToken, process.env.REFRESH_JWT_SECRET)
+        const user = await Register.findOne({refreshtoken:refreshToken})
+        console.log(user);
+        if (!user) {
+            return res.status(404).json({ msg: "User not Found" })
+        }
+        // console.log(decoded.user);
+        // if (user._id !== decoded.user) {
+        //     return res.status(401).json({ msg: "User Not Authorize" })
+        // }
+
+        const payload = {
+            user: user._id,
+        };
+
+        const token = jwt.sign(payload, process.env.SECRET_KEY, {
+            expiresIn: "10s",
+        });
+        console.log("new token",token);
+        
+        res.status(200).json({ msg:"New Token sended successfully", token: token })
+
+    } catch (error) {
+        res.status(500).json({ msg: error.message })
     }
 })
 
