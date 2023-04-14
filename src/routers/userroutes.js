@@ -32,7 +32,7 @@ router.post("/users",async (req,res)=>{
     
 })
 
-router.get("/users",async (req,res)=>{
+router.get("/users",auth,async (req,res)=>{
     try{
         const userData=await Register.find();
         res.status(201).send(userData);
