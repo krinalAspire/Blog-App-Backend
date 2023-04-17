@@ -32,7 +32,7 @@ router.post("/users",async (req,res)=>{
     
 })
 
-router.get("/users",auth,async (req,res)=>{
+router.get("/users",async (req,res)=>{
     try{
         const userData=await Register.find();
         res.status(201).send(userData);
@@ -77,10 +77,15 @@ router.delete("/users/:id",async(req,res)=>{
 
 router.post('/login', async(req,res)=>{
     const {userid, password} = req.body;
+    // console.log("useid", userid);
+    // console.log("password", password);
 try{
     const userId = await Register.findOne({userid:userid})
+    // console.log(userId);
     const isMatch = await bcrypt.compare(password, userId.password)
+    // console.log(isMatch);
     const token = await userId.generateAuthToken()
+    // console.log(token);
     const refreshToken=await jwt.sign({_id:userId._id}, process.env.REFRESH_JWT_SECRET, {
             expiresIn: "1d",
         });

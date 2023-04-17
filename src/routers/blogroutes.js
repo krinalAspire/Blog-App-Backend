@@ -12,10 +12,6 @@ router.get("/blogs", async(req,res)=>{
     }
 })
 
-router.get("/home",auth,(req,res)=>{
-    res.send("succesfull");
-})
-
 router.post("/blogs",async (req,res)=>{
     try{
         const blog=new Blog(req.body);
@@ -43,6 +39,7 @@ router.patch("/blogs/:id",async(req,res)=>{
         const updateBlog=await Blog.findByIdAndUpdate(_id, req.body,{
             new:true
         });
+        // console.log(updateBlog);
         res.status(201).send(updateBlog);
     }catch(e){
         res.status(400).send(e);
