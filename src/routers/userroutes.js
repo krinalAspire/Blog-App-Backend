@@ -32,7 +32,7 @@ router.post("/users",async (req,res)=>{
     
 })
 
-router.get("/users",async (req,res)=>{
+router.get("/users",auth,async (req,res)=>{
     try{
         const userData=await Register.find();
         res.status(201).send(userData);
@@ -216,13 +216,13 @@ router.post("/refresh-token", async(req,res)=>{
     // }
     try {
         const refreshToken = req.body?.refreshtoken
-        console.log(refreshToken);
+        // console.log(refreshToken);
         if (!refreshToken) {
             return res.status(404).json({ msg: "Token not Found" })
         }
         const decoded = jwt.verify(refreshToken, process.env.REFRESH_JWT_SECRET)
         const user = await Register.findOne({refreshtoken:refreshToken})
-        console.log(user);
+        // console.log(user);
         if (!user) {
             return res.status(404).json({ msg: "User not Found" })
         }
@@ -236,9 +236,9 @@ router.post("/refresh-token", async(req,res)=>{
         };
 
         const token = jwt.sign(payload, process.env.SECRET_KEY, {
-            expiresIn: "15s",
+            expiresIn: "20s",
         });
-        console.log("new token",token);
+        // console.log("new token",token);
         
         res.status(200).json({ msg:"New Token sended successfully", token: token })
 

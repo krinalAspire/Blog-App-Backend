@@ -5,10 +5,12 @@ const auth=async(req,res, next)=>{
     try{
    //  const token = req.header("Authorization")?.replace("Bearer" + '')
     const token = req.headers.authorization.split(' ')[1];
-    console.log("fv",token);
+   //  console.log("fv",token);/
       //  const token=req.cookies.jwt;
        const verifyUser=jwt.verify(token,process.env.SECRET_KEY);
+       console.log("verifyuser",verifyUser);
        const user=await Register.findOne({_id:verifyUser._id});
+      //  console.log("verifieduser",user);
 
        req.token=token;
        req.user=user;
