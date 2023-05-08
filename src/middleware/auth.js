@@ -15,8 +15,11 @@ const auth=async(req,res, next)=>{
        req.token=token;
        req.user=user;
        next();
-    }catch(e){
-       res.status(400).send(e);
+    }catch(error){
+      //  res.status(400).send(e);
+      // console.log(error.message);
+      res.status(419).json({ msg: error.message });
+      //  res.status(419).json({ msg:"token expired"});
     }
 }
 
